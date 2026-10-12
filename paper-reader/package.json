@@ -1,0 +1,8 @@
+{
+  "name": "@local/dsh-paper-reader",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": { ".": "./index.js" },
+  "dsh": { "bundle": { "patch": "./cordis.patch.yml" } }
+}

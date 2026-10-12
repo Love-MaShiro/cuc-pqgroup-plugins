@@ -1,0 +1,6 @@
+# CODEOWNERS —— git 层 merge 权限（配合分支保护规则使用）
+# merged/ 只有 reviewer（teacher/admin）能 merge；各人只能改自己的 users/<name>/
+
+/merged/          @team-reviewers
+/ADMIN/           @team-admins
+/users/*/         @team-admins

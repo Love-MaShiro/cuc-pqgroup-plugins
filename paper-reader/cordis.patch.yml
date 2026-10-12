@@ -1,0 +1,4 @@
+- insert:
+    - id: paper-reader
+      name: '@local/dsh-paper-reader'
+      config: {}

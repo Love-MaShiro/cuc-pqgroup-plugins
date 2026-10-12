@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PQC 科研工作流平台 · 使用指南</title>
+<style>
+  :root {
+    --ink: #1a2332; --muted: #5b6b7f; --accent: #2f6fed; --accent-soft: #eaf1ff;
+    --line: #e6ebf2; --bg: #f7f9fc; --card: #ffffff; --green: #16a34a; --green-soft: #e8f7ee;
+    --amber: #b45309; --amber-soft: #fdf3e3; --violet: #7c3aed; --violet-soft: #f1ebfe;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    color: var(--ink); background: var(--bg); line-height: 1.7; -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 920px; margin: 0 auto; padding: 48px 24px 80px; }
+  header { text-align: center; margin-bottom: 40px; }
+  .badge { display: inline-block; font-size: 13px; color: var(--accent); background: var(--accent-soft); padding: 4px 14px; border-radius: 999px; margin-bottom: 16px; font-weight: 600; }
+  h1 { font-size: 34px; letter-spacing: -0.5px; margin-bottom: 12px; }
+  .sub { color: var(--muted); font-size: 17px; max-width: 680px; margin: 0 auto; }
+  section { margin-top: 48px; }
+  h2 { font-size: 22px; margin-bottom: 18px; display: flex; align-items: center; gap: 10px; }
+  h2 .n { flex: none; width: 28px; height: 28px; border-radius: 8px; background: var(--accent); color: #fff; font-size: 15px; display: inline-flex; align-items: center; justify-content: center; }
+  h3 { font-size: 16px; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 22px 20px; }
+  .card .icon { font-size: 26px; }
+  .card h3 { margin: 10px 0 6px; }
+  .card p { color: var(--muted); font-size: 14px; }
+  .tag { display: inline-block; font-size: 11px; border-radius: 6px; padding: 1px 8px; font-weight: 600; margin-left: 6px; vertical-align: middle; }
+  .tag.ready { background: var(--green-soft); color: var(--green); }
+  .tag.wip { background: var(--amber-soft); color: var(--amber); }
+  .steps { counter-reset: step; }
+  .step { display: flex; gap: 16px; background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 20px; margin-bottom: 14px; }
+  .step .num { counter-increment: step; flex: none; width: 34px; height: 34px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); font-weight: 700; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+  .step h3 { margin-bottom: 4px; }
+  .step p { color: var(--muted); font-size: 14px; }
+
+  .kb { background: var(--card); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; box-shadow: 0 1px 3px rgba(20,40,80,.04); }
+  .kb-head { padding: 16px 20px; background: #f4f8ff; border-bottom: 1px solid var(--line); font-weight: 600; font-size: 15px; }
+  .kb-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; padding: 18px; }
+  .kb-item { border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; font-size: 13.5px; }
+  .kb-item h4 { font-size: 14px; margin-bottom: 8px; color: var(--accent); }
+  .kb-item p { color: var(--muted); font-size: 13px; margin-bottom: 8px; }
+  .concept-card { background: #fafcff; border: 1px solid var(--accent-soft); border-radius: 10px; padding: 12px 14px; font-size: 13px; }
+  .concept-card .t { font-weight: 600; }
+  .concept-card .en { color: var(--muted); font-size: 12px; margin: 2px 0 6px; }
+  .concept-card .d { color: #3a4a60; }
+  .graph { background: #fafcff; border: 1px dashed var(--accent-soft); border-radius: 10px; padding: 14px; text-align: center; font-size: 13px; }
+  .graph .node { display: inline-block; background: var(--accent-soft); color: var(--accent); border-radius: 8px; padding: 4px 10px; margin: 3px; font-weight: 600; }
+  .graph .edge { color: var(--muted); margin: 0 2px; }
+  .graph .row { margin: 8px 0; }
+
+  .flow { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; margin: 18px 0; }
+  .flow .f { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; font-size: 13.5px; font-weight: 600; }
+  .flow .arrow { color: var(--muted); font-size: 18px; }
+
+  .example { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 24px; font-size: 14.5px; }
+  .example .q { color: var(--accent); font-weight: 600; margin-top: 12px; }
+  .example .q:first-child { margin-top: 0; }
+  .example .a { color: var(--muted); margin: 4px 0 0 0; }
+  .example blockquote { border-left: 3px solid var(--accent-soft); padding: 6px 14px; background: #fafcff; border-radius: 0 8px 8px 0; margin: 10px 0; color: #3a4a60; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 14px; background: var(--card); border-radius: 12px; overflow: hidden; }
+  th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--line); }
+  th { background: #f4f8ff; font-weight: 600; }
+  tr:last-child td { border-bottom: none; }
+  .note { font-size: 12.5px; color: var(--muted); margin-top: 8px; }
+  .pill { display: inline-block; font-size: 12px; border-radius: 999px; padding: 1px 10px; font-weight: 600; }
+  .pill.g { background: var(--green-soft); color: var(--green); }
+  .pill.a { background: var(--amber-soft); color: var(--amber); }
+
+  .faq .q { font-weight: 600; margin-top: 20px; }
+  .faq .a { color: var(--muted); }
+  footer { text-align: center; color: var(--muted); font-size: 13px; margin-top: 56px; }
+  .kbd { display: inline-block; font-family: ui-monospace, monospace; font-size: 13px; background: #eef1f6; border: 1px solid var(--line); border-radius: 6px; padding: 1px 8px; color: var(--ink); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <span class="badge">后量子密码项目组 · 科研工作流平台</span>
+    <h1>从读论文、写论文，到算法审核</h1>
+    <p class="sub">一个贯穿科研全流程的工作台：读论文沉淀成知识库，写论文有模板和辩论打磨，算法审核能自动跑检测脚本出报告——三个环节共享同一份团队知识。</p>
+  </header>
+
+  <section>
+    <h2><span class="n">1</span>平台能做什么</h2>
+    <div class="cards">
+      <div class="card">
+        <div class="icon">📖</div>
+        <h3>读论文 <span class="tag ready">已上线</span></h3>
+        <p>辅助阅读 + 老师式对话带学，读完后知识自动沉淀进团队知识库，支持语义搜索复用。</p>
+      </div>
+      <div class="card">
+        <div class="icon">✍️</div>
+        <h3>写论文 <span class="tag wip">逐步上线</span></h3>
+        <p>套用期刊 LaTeX 模板；把创新点交给多个模型从不同角度辩论，打磨严谨性。</p>
+      </div>
+      <div class="card">
+        <div class="icon">🛡️</div>
+        <h3>算法审核 <span class="tag wip">逐步上线</span></h3>
+        <p>判断密码算法的理论与实际安全性，自动运行检测脚本计算安全强度，出评估报告。</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="n">2</span>环节一 · 读论文</h2>
+    <div class="steps">
+      <div class="step"><div class="num">1</div><div><h3>丢入论文</h3><p>把论文 PDF 拖进对话，输入 <span class="kbd">/readpaper</span>，或说一句"读这篇论文"。</p></div></div>
+      <div class="step"><div class="num">2</div><div><h3>跟着带学</h3><p>老师先抛引导问题，按你的回答展开讲解（答对简讲、答错纠偏）；前置知识可<span class="kbd">跳过</span>。</p></div></div>
+      <div class="step"><div class="num">3</div><div><h3>知识自动沉淀</h3><p>读完生成结构化笔记（一句话看懂、前置知识、核心内容、术语表），进团队知识库。</p></div></div>
+    </div>
+    <div class="example">
+      <p class="q">📌 读一篇论文，你会得到什么（以《Attention Is All You Need》为例）</p>
+      <p class="a">一句话看懂 —— 用纯注意力替代 RNN，让序列建模完全并行。</p>
+      <blockquote>前置知识：自注意力（核心组件）、位置编码（注入顺序信息）、序列到序列（并行化问题）</blockquote>
+      <p class="a">核心内容分节讲解（附中英对照），并标注"每个核心概念依赖哪些前置知识"，复习能顺着脉络走。</p>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="n">3</span>环节二 · 写论文</h2>
+    <div class="cards">
+      <div class="card">
+        <div class="icon">📄</div>
+        <h3>期刊 LaTeX 模板</h3>
+        <p>选定目标期刊，自动套用其 LaTeX 模板和格式规范，标题、摘要、正文、公式、参考文献排版一次到位。</p>
+      </div>
+      <div class="card">
+        <div class="icon">⚔️</div>
+        <h3>多模型辩论</h3>
+        <p>把你的创新点交给多个模型从不同立场辩论——一方支持、一方质疑、一方找反例，逼出论证的漏洞，再迭代完善。</p>
+      </div>
+      <div class="card">
+        <div class="icon">🔗</div>
+        <h3>引用团队知识</h3>
+        <p>写作时能检索团队知识库，把读过的论文结论、概念定义直接引用进论文，避免重新查资料。</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="n">4</span>环节三 · 算法审核</h2>
+    <p style="color:var(--muted); margin-bottom:14px;">对密码算法做安全性把关，覆盖 NIST 标准算法、候选算法、国密征集算法，以及项目组自己提出的方案。分四步：</p>
+    <div class="steps">
+      <div class="step"><div class="num">1</div><div><h3>理论安全性</h3><p>判断算法基于的数学难题是否可靠、安全归约是否成立、参数选择是否合理，并给出经典/量子安全强度。</p></div></div>
+      <div class="step"><div class="num">2</div><div><h3>实际安全性</h3><p>排查已知攻击：侧信道、故障注入、解密失败、随机数重用等，结合知识库里已有的攻击记录。</p></div></div>
+      <div class="step"><div class="num">3</div><div><h3>自动运行检测脚本</h3><p>调用检测脚本自动计算：安全强度估算、参数验证、已知攻击复现，拿到量化结果。</p></div></div>
+      <div class="step"><div class="num">4</div><div><h3>输出评估报告</h3><p>汇总成一份《算法安全性评估报告》，提供 LaTeX 版（可提交）和 Markdown 版（回流知识库）。</p></div></div>
+    </div>
+    <div class="flow">
+      <span class="f">输入算法</span><span class="arrow">→</span><span class="f">理论分析</span><span class="arrow">→</span><span class="f">攻击排查</span><span class="arrow">→</span><span class="f">跑脚本</span><span class="arrow">→</span><span class="f">评估报告</span>
+    </div>
+    <p class="note">审核的结论（安全强度、已知攻击、参数建议）也会沉淀进知识库——下次审同族算法或自研方案时，直接对比复用。</p>
+  </section>
+
+  <section>
+    <h2><span class="n">5</span>共享底座 · 团队知识库</h2>
+    <p style="color:var(--muted); margin-bottom:16px;">三个环节共享同一份知识。它是有结构、有脉络、能搜索的知识地图：</p>
+    <div class="kb">
+      <div class="kb-head">📚 团队知识库 —— 四个组成部分</div>
+      <div class="kb-grid">
+        <div class="kb-item">
+          <h4>① 概念卡片</h4>
+          <p>每个知识点一张卡片，全团队唯一、自动去重。谁先沉淀，后来的人直接引用。</p>
+          <div class="concept-card">
+            <div class="t">模格 LWE 问题</div>
+            <div class="en">Module-LWE</div>
+            <div class="d">带错误学习问题的模格变体，是 ML-KEM 等方案安全性的基础难题。</div>
+          </div>
+        </div>
+        <div class="kb-item">
+          <h4>② 知识脉络（图谱）</h4>
+          <p>每个概念都标注"依赖哪些前置知识"，从基础难题到具体算法，脉络清晰可追溯。</p>
+          <div class="graph">
+            <div class="row"><span class="node">格难题</span><span class="edge">→</span><span class="node">LWE / SIS</span><span class="edge">→</span><span class="node">模格 LWE</span></div>
+            <div class="row"><span class="edge">└── 支撑</span> <span class="node" style="background:#fde8d8;color:#9a3412;">ML-KEM</span> <span class="edge">等方案 ──┘</span></div>
+          </div>
+        </div>
+        <div class="kb-item">
+          <h4>③ 论文讲义</h4>
+          <p>每篇论文一份结构化讲义：一句话看懂、背景动机、核心方法、实验、局限。</p>
+          <p style="font-size:12.5px;color:#8a97a8;">例：一篇格密码论文 → 提炼其核心贡献与安全归约。</p>
+        </div>
+        <div class="kb-item">
+          <h4>④ 术语表</h4>
+          <p>全团队统一的英中术语对照，跨论文复用。</p>
+          <p style="font-size:12.5px;color:#8a97a8;">例：side-channel → 侧信道；security reduction → 安全归约。</p>
+        </div>
+      </div>
+      <div style="padding:0 20px 18px; font-size:13.5px; color:var(--muted);">
+        整个知识库支持<span style="color:var(--accent);font-weight:600;">语义搜索</span>——按"意思"搜，不是关键词。想问"ML-KEM 为什么能抗量子"，它能直接找到相关的概念卡片、论文段落和审核结论，并给出带出处的回答。
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="n">6</span>需要准备什么</h2>
+    <p style="color:var(--muted); margin-bottom:16px;">平台需要两类"大脑"，由管理员统一配置，使用者无感：</p>
+    <table>
+      <tr><th style="width:22%">能力</th><th style="width:38%">用什么模型</th><th>作用</th></tr>
+      <tr><td><b>对话 / 推理</b><br><span class="note">（大模型）</span></td><td>DeepSeek、Qwen 等大语言模型</td><td>读论文、写论文、审核推理的"脑子"。</td></tr>
+      <tr><td><b>语义检索</b><br><span class="note">（小向量模型）</span></td><td>小的 embedding 模型，如 <b>bge-m3</b>、<b>qwen 的 embedding</b> 等</td><td>给知识库"按意思搜索"的能力，很小很便宜，可本地免费跑。</td></tr>
+    </table>
+    <p class="note">※ 检测脚本（算法审核用）来自开源项目，由管理员拉取配置；模型由管理员统一配置，普通成员只需会"丢论文、跟着用"。</p>
+  </section>
+
+  <section>
+    <h2><span class="n">7</span>成本预估</h2>
+    <p style="color:var(--muted); margin-bottom:16px;">主要消耗大模型调用，按 DeepSeek 官方定价估算（每篇约 20 页论文的完整处理）：</p>
+    <table>
+      <tr><th>环节</th><th>用 deepseek-flash</th><th>用 deepseek-v4-pro</th><th>频率</th></tr>
+      <tr><td><b>读论文</b>（带学 + 生成 wiki）</td><td><span class="pill g">约 0.3 元/篇</span></td><td><span class="pill a">约 1.2 元/篇</span></td><td>高</td></tr>
+      <tr><td><b>写论文</b>（多模型辩论 + 打磨）</td><td>约 1–2 元/轮</td><td>约 4–8 元/轮</td><td>中</td></tr>
+      <tr><td><b>算法审核</b>（分析 + 报告）</td><td>约 2–5 元/算法</td><td>约 8–20 元/算法</td><td>低</td></tr>
+    </table>
+    <p class="note">
+      ※ 估算口径：读论文单篇累计输入约 20 万 token、输出约 4 万 token；写论文辩论和算法审核因多轮且上下文更长，单次更高。<br>
+      ※ DeepSeek 有缓存命中优惠（命中价约为未命中的 1/10~1/30）和空闲时段半价，实际常低于上表。<br>
+      ※ 语义检索的 embedding 成本极低（可忽略），检测脚本多数本地运行不额外计费。<br>
+      ※ 价格以 DeepSeek 官方最新页面为准，会随官方调整变动。
+    </p>
+    <div style="margin-top:14px; background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px 18px; font-size:13.5px; color:var(--muted);">
+      <b style="color:var(--ink);">一个项目组一个月大概花多少？</b><br>
+      以 20 人、每人每周精读 2 篇、每月写论文辩论约 10 轮、算法审核约 5 次估算：用 deepseek-flash 合计约 <b style="color:var(--green);">100 元/月</b>；用 deepseek-v4-pro 约 <b style="color:var(--amber);">400 元/月</b>。相比节省的人力时间，成本很低。
+    </div>
+  </section>
+
+  <section class="faq">
+    <h2><span class="n">8</span>常见问题</h2>
+    <p class="q">我不懂论文的前置知识怎么办？</p>
+    <p class="a">带学开始前会列出前置知识并问是否跳过；不跳过的话先带你补基础，再进核心。</p>
+    <p class="q">同一篇论文别人读过了，我还需要读吗？</p>
+    <p class="a">先搜团队知识库——已有沉淀就直接看现成笔记，省下从头读的时间。</p>
+    <p class="q">算法审核的结果可靠吗？</p>
+    <p class="a">审核结合了三样：模型的理论分析、知识库里沉淀的已知攻击、以及检测脚本的量化计算结果，相互印证；最终报告由人复核。</p>
+    <p class="q">谁来配置模型和成本？</p>
+    <p class="a">管理员统一配置模型、充值额度、维护检测脚本；普通成员无需关心技术细节。</p>
+  </section>
+
+  <footer>PQC 科研工作流平台 · 读得懂、写得顺、审得严，知识一次沉淀、全组复用</footer>
+</div>
+</body>
+</html>

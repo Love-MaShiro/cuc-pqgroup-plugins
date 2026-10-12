@@ -1,0 +1,37 @@
+# 权限矩阵 —— 单一事实源
+# 角色映射到两层权限：git（内容写权限）+ weknora（知识读写权限）
+# 阶段 1：普通用户只读 merged/；阶段 2 放开 AI 写（经权限确认）
+
+roles:
+  system_admin:
+    description: 系统管理员，管理账号、权限、系统配置
+    git:
+      - repo:admin              # 仓库全部权限
+    weknora:
+      - all                     # WeKnora 全部（含工作区/用户管理）
+
+  teacher:                      # reviewer / 教师
+    description: 审核并合并 canonical，管理知识质量
+    git:
+      - merged:merge            # 可合并进 merged/（保护分支）
+      - users:self:write        # 写自己的命名空间
+      - merged:read             # 读 merged
+      - users:read              # 读所有原文
+    weknora:
+      - kb:read                 # 检索/读文档
+      - kb:write                # 上传/编辑知识库
+      - chat                    # 问答
+
+  student:                      # 普通用户（阶段 1 只读）
+    description: 阶段 1：只读 canonical，仅写自己命名空间
+    git:
+      - users:self:write        # 只能写自己的命名空间
+      - merged:read             # 只读 merged
+      - users:read              # 读所有原文（共享）
+    weknora:
+      - kb:read                 # 检索/读文档
+      - chat                    # 问答（不能上传/编辑）
+
+# 阶段 2（AI 人人可写）时的调整：
+#   student.git 增加 [merged:propose] —— AI 可提交 merge 提案，经 AI 校验后自动合并
+#   student.weknora 增加 [kb:write] —— 经权限确认后可写

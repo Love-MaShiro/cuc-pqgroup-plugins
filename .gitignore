@@ -1,0 +1,10 @@
+# Dependencies and local output
+node_modules/
+*.log
+.local-data/
+
+# Knowledge data belongs in repository B
+/paper-wiki/
+/team-wiki/users/*/
+/team-wiki/merged/*
+!/team-wiki/merged/README.md

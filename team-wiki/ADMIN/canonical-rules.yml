@@ -1,0 +1,20 @@
+# 跨用户概念合并规则 —— canonical 判定与去重策略
+# 由 merge-wiki.mjs 读取，决定多份同名概念如何合并
+
+dedup:
+  keys: [slug, nameEn, name]    # 去重键（命中任一即视为同一概念）
+  useAliases: true              # 别名也参与去重匹配
+  strategy: keep-longest        # 冲突时保留最完整的（summary/正文最长者）
+                                # keep-first / keep-longest / reviewer-override
+
+merge:
+  papers: union                 # papers 引用取并集（多篇论文都用它，都保留）
+  relations: dedup-by-id        # 映射边按 id 去重（同 source→target 只留一条）
+  aliases: union                # 别名取并集
+  summary: keep-longest         # 摘要保留最长的
+  category: keep-core-first     # 类别冲突时优先级 core > method > prerequisite > background > result
+
+canonical:
+  output: merged/               # canonical 输出目录
+  graph: graph.json             # 全局图谱文件
+  sourceKeep: users/            # 原文保留在 users/（只读，不删）

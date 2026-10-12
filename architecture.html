@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PQC 科研工作流平台 · 系统架构与部署说明</title>
+<style>
+  :root {
+    --ink: #1a2332; --muted: #5b6b7f; --accent: #2f6fed; --accent-soft: #eaf1ff;
+    --line: #e6ebf2; --bg: #f7f9fc; --card: #ffffff; --green: #16a34a; --green-soft: #e8f7ee;
+    --amber: #b45309; --amber-soft: #fdf3e3; --red: #dc2626; --red-soft: #fee2e2;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; color: var(--ink); background: var(--bg); line-height: 1.75; -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 940px; margin: 0 auto; padding: 48px 24px 80px; }
+  header { text-align: center; margin-bottom: 44px; }
+  .badge { display: inline-block; font-size: 13px; color: var(--accent); background: var(--accent-soft); padding: 4px 14px; border-radius: 999px; margin-bottom: 16px; font-weight: 600; }
+  h1 { font-size: 32px; letter-spacing: -0.5px; margin-bottom: 12px; }
+  .sub { color: var(--muted); font-size: 16px; max-width: 680px; margin: 0 auto; }
+  section { margin-top: 48px; }
+  h2 { font-size: 22px; margin-bottom: 18px; display: flex; align-items: center; gap: 10px; }
+  h2 .n { flex: none; width: 28px; height: 28px; border-radius: 8px; background: var(--accent); color: #fff; font-size: 15px; display: inline-flex; align-items: center; justify-content: center; }
+  h3 { font-size: 16px; margin: 18px 0 8px; }
+  p { color: var(--muted); font-size: 14.5px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 22px 24px; margin-bottom: 16px; }
+  code { font-family: ui-monospace, "SF Mono", Consolas, monospace; font-size: 13px; background: #eef1f6; border: 1px solid var(--line); border-radius: 5px; padding: 1px 6px; color: #1a3a6b; }
+  pre { background: #0f172a; color: #e2e8f0; border-radius: 12px; padding: 16px 18px; overflow-x: auto; font-size: 13px; line-height: 1.6; margin: 10px 0; }
+  pre code { background: none; border: none; color: inherit; padding: 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; background: var(--card); border-radius: 12px; overflow: hidden; margin: 10px 0; }
+  th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--line); }
+  th { background: #f4f8ff; font-weight: 600; }
+  tr:last-child td { border-bottom: none; }
+  .note { font-size: 12.5px; color: var(--muted); margin-top: 8px; }
+  .pill { display: inline-block; font-size: 12px; border-radius: 999px; padding: 1px 10px; font-weight: 600; }
+  .pill.g { background: var(--green-soft); color: var(--green); }
+  .pill.a { background: var(--amber-soft); color: var(--amber); }
+  .pill.r { background: var(--red-soft); color: var(--red); }
+
+  /* 架构图 */
+  .arch { display: flex; flex-direction: column; gap: 0; }
+  .layer { border: 1px solid var(--line); border-radius: 14px; padding: 16px 20px; background: var(--card); position: relative; }
+  .layer .tag { position: absolute; top: -10px; left: 16px; background: var(--accent); color: #fff; font-size: 12px; padding: 2px 10px; border-radius: 6px; font-weight: 600; }
+  .layer .tag.g2 { background: var(--green); }
+  .layer .tag.v { background: #7c3aed; }
+  .arrow { text-align: center; color: var(--muted); font-size: 16px; padding: 6px 0; }
+  .layer h4 { font-size: 15px; margin-bottom: 6px; }
+  .layer p { font-size: 13.5px; }
+  .box { display: inline-block; border: 1px solid var(--accent-soft); background: #fafcff; border-radius: 8px; padding: 4px 10px; margin: 2px; font-size: 12.5px; color: var(--ink); }
+
+  .warn { background: var(--red-soft); border: 1px solid #fecaca; border-radius: 10px; padding: 12px 16px; font-size: 13.5px; color: #7f1d1d; margin-top: 12px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <span class="badge">后量子密码项目组 · 技术说明</span>
+    <h1>系统架构与部署说明</h1>
+    <p class="sub">讲清楚四件事：整个系统的具体形态、DSH 和 WeKnora 的分工关系、WeKnora 部署方案、以及我们 wiki 知识库的最终形态。</p>
+  </header>
+
+  <section>
+    <h2><span class="n">1</span>系统总览：三层形态</h2>
+    <div class="arch">
+      <div class="layer" style="margin-top:10px;">
+        <span class="tag">使用层 · 每人本地</span>
+        <h4>DSH（DeepSeek Harness）—— 装在每个人的电脑上</h4>
+        <p>装两个插件：
+          <span class="box">paper-reader</span> 读论文、对话带学、落盘 wiki（<b>生产知识</b>）
+          <span class="box">dsh-weknora</span> 4 个只读工具：检索/读文档/问答（<b>消费知识</b>）
+        </p>
+      </div>
+      <div class="arrow">▼ git 汇聚 / 批量导入</div>
+      <div class="layer">
+        <span class="tag g2">知识层 · 团队共享</span>
+        <h4>wiki 知识库 —— 三层数据</h4>
+        <p>
+          <span class="box">本地真源</span> paper-wiki/（md 概念页 + 论文页 + graph.json 图谱）
+          <span class="box">git 汇聚</span> team-wiki/（中心仓库，canonical 合并）
+          <span class="box">智能检索</span> WeKnora（向量 + 语义问答）
+        </p>
+      </div>
+      <div class="arrow">▼ 提供检索/问答 API</div>
+      <div class="layer">
+        <span class="tag v">智能层 · 服务器</span>
+        <h4>WeKnora + 模型</h4>
+        <p>
+          <span class="box">DeepSeek</span> 大模型（LLM，问答/推理）
+          <span class="box">千问 qwen3.7-text-embedding-flash</span> 向量模型（embedding，语义检索）
+        </p>
+      </div>
+    </div>
+    <p class="note">完整闭环：<b>读论文（DSH 生产）→ 落盘 wiki → git 汇聚 → 导入 WeKnora → 全员检索（DSH 消费）→ 下次带学复用</b>。</p>
+  </section>
+
+  <section>
+    <h2><span class="n">2</span>DSH 和 WeKnora 的关系</h2>
+    <div class="card">
+      <h3>一句话：DSH 是"手"，WeKnora 是"脑"；一个生产知识，一个检索知识。</h3>
+      <table>
+        <tr><th style="width:20%"></th><th style="width:40%">DSH（本地）</th><th>WeKnora（服务器）</th></tr>
+        <tr><td><b>定位</b></td><td>使用端，装在每人电脑</td><td>服务端，团队共享的语义检索 + 问答</td></tr>
+        <tr><td><b>职责</b></td><td>读论文、带学、生成 wiki（<b>生产</b>）</td><td>存文档向量、语义检索、RAG 问答（<b>消费</b>）</td></tr>
+        <tr><td><b>装什么</b></td><td>paper-reader + dsh-weknora 插件</td><td>Docker 容器（postgres/redis/app/docreader…）</td></tr>
+        <tr><td><b>数据</b></td><td>本地 paper-wiki/（真源，git 管理）</td><td>导入的文档向量（从 wiki 派生）</td></tr>
+      </table>
+      <h3>两者怎么连</h3>
+      <p>DSH 里的 <code>dsh-weknora</code> 插件通过 HTTP 调 WeKnora 后端（<code>baseUrl</code> + <code>apiKey</code>），提供 4 个工具：<code>weknora_search</code>（检索原文段落）、<code>weknora_read_document</code>（读全文分块）、<code>weknora_ask</code>（RAG 问答）、<code>weknora_list_knowledge_bases</code>。</p>
+      <p>注意：<b>dsh-weknora 只读不写</b>——文档导入要靠 WeKnora 的 Web UI / CLI / API，不是由 DSH 写进去。</p>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="n">3</span>WeKnora 部署方案</h2>
+    <div class="card">
+      <h3>原则：PQC 数据敏感，优先内网自建，避免公网暴露</h3>
+      <table>
+        <tr><th>方案</th><th>适合</th><th>数据安全</th><th>成本</th><th>推荐</th></tr>
+        <tr><td>内网服务器（实验室/学校机器）</td><td>团队同处一个内网</td><td>最高，数据不出内网</td><td>几乎为 0</td><td><span class="pill g">首选</span></td></tr>
+        <tr><td>私有云服务器（阿里云/腾讯云 VPS）</td><td>团队分散、需远程</td><td>需白名单 + HTTPS</td><td>约 100~300 元/月</td><td><span class="pill a">次选</span></td></tr>
+        <tr><td>WeKnora Cloud 托管</td><td>个人快速体验</td><td>数据在第三方</td><td>按量</td><td><span class="pill r">不推荐（PQC 敏感）</span></td></tr>
+      </table>
+      <div class="warn">⚠️ 无论哪种方案，都不要把 WeKnora 直接暴露公网；云服务器务必配置安全组白名单（只允许团队 IP）、HTTPS、强密码、定期更新。</div>
+    </div>
+    <div class="card">
+      <h3>Docker Compose 部署步骤（以 Linux 服务器为例）</h3>
+      <pre><code># 1. 准备环境
+sudo apt update && sudo apt install -y docker.io docker-compose-plugin git
+
+# 2. 拉取 WeKnora
+git clone https://github.com/Tencent/WeKnora.git
+cd WeKnora
+cp .env.example .env
+
+# 3. 编辑 .env（关键：模型配置，见第 4 节）
+# 4. 启动（默认 6 容器：postgres/redis/app/docreader/frontend/nginx）
+docker compose pull
+docker compose up -d
+
+# 5. 访问
+#    Web UI:   http://服务器IP:80
+#    后端 API: http://服务器IP:8080</code></pre>
+      <h3>硬件需求</h3>
+      <p>最低 2 核 4G，推荐 <b>4 核 8G</b>；embedding 和 LLM 都调 API（不占本地算力），所以服务器不用 GPU，主要是跑检索和 PDF 解析。</p>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="n">4</span>模型配置（.env）</h2>
+    <div class="card">
+      <h3>两个模型，都是 OpenAI 兼容 API</h3>
+      <pre><code># ===== LLM（DeepSeek 大模型：问答/推理）=====
+LLM_MODEL_NAME=deepseek-chat
+LLM_BASE_URL=https://api.deepseek.com/v1
+LLM_API_KEY=sk-你的DeepSeekKey
+LLM_PROVIDER=openai
+
+# ===== Embedding（千问向量模型：语义检索）=====
+EMBEDDING_MODEL_NAME=qwen3.7-text-embedding-flash
+EMBEDDING_BASE_URL=https://maas.qianwenaiapi.com/compatible-mode/v1
+EMBEDDING_API_KEY=sk-ws-...（你的千问 key）
+EMBEDDING_PROVIDER=openai</code></pre>
+      <p class="note">
+        千问向量模型信息：qwen3.7-text-embedding-flash，201 种语言、上下文 131K、约 ¥0.125/M tokens（远低于大模型）。<br>
+        ⚠️ API key 不要写进 git 仓库，用环境变量注入；密钥已泄露的话去平台重置。
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="n">5</span>wiki 知识库的最终形态</h2>
+    <div class="card">
+      <h3>三层数据，各自职责不同、单向派生</h3>
+      <div class="arch">
+        <div class="layer" style="margin-top:10px;">
+          <span class="tag">① 本地真源（每人的 paper-wiki/）</span>
+          <p><code>concepts/*.md</code>（概念页，全库唯一）+ <code>papers/*.md</code>（论文讲义）+ <code>glossary.md</code>（术语表）+ <code>graph.json</code>（知识图谱：实体 + <b>prerequisite_of</b> 前置→核心映射）</p>
+          <p class="note">这是<b>唯一可信数据源</b>，git 管理，可 diff/回滚/迁移。</p>
+        </div>
+        <div class="arrow">▼ git push（团队汇聚）</div>
+        <div class="layer">
+          <span class="tag g2">② 团队汇聚（team-wiki/ 中心 git 仓库）</span>
+          <p><code>users/&lt;name&gt;/wiki/</code>（各人原文，全员共享）+ <code>merged/</code>（canonical 精选，review 后合并）+ <code>graph.json</code>（全局图谱，跨用户去重）</p>
+          <p class="note">由 <code>scripts/merge-wiki.mjs</code> 把多人 wiki 合并去重；权限用 git 保护分支 + CODEOWNERS。</p>
+        </div>
+        <div class="arrow">▼ 批量导入（WeKnora）</div>
+        <div class="layer">
+          <span class="tag v">③ 智能检索（WeKnora）</span>
+          <p>向量检索 + 混合检索 + RAG 问答 + 知识图谱；dsh-weknora 插件让 DSH 里的 agent 直接检索/问答。</p>
+          <p class="note">从 ①② 单向派生，只读消费，不改真源。</p>
+        </div>
+      </div>
+      <h3>为什么这样分三层</h3>
+      <p>本地真源保证「离线能用、可版本、可迁移」；git 汇聚解决「多人的知识去重、review、权限」；WeKnora 提供「语义搜索、问答」这种本地文件给不了的能力。三层单向派生——任何时候 WeKnora 挂了、git 乱了，真源（①）都还在。</p>
+    </div>
+  </section>
+
+  <footer style="text-align:center; color:var(--muted); font-size:13px; margin-top:56px;">
+    完整设计见 DESIGN.md · 一期 README 见 README.md · WeKnora 接入见 WEKNORA_INTEGRATION.md
+  </footer>
+</div>
+</body>
+</html>
