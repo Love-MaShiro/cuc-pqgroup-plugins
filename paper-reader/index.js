@@ -1,13 +1,6 @@
-import { randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
-
-// 手写 createUserMessage，等价于 @deepseek-ai/dsh-llm 的 createUserMessage：
-// { ...input, id: brandString(randomUUID()), role: "user" }。
-// 外部 bundle 无法 import dsh 自带包，故用 node 内置 crypto 自造，做到零外部依赖。
-function createUserMessage(input) {
-  return { ...input, id: randomUUID(), role: "user" };
-}
+import { executeReadpaper } from "./readpaper.js";
 
 // ---------------------------------------------------------------------------
 // paper-reader — 论文带学 + Wiki 知识库插件
@@ -34,7 +27,7 @@ const RESOURCE_BASE = {
   path: fileURLToPath(new URL("./assets/", import.meta.url)),
 };
 const SKILL_DESCRIPTION =
-  "带读一篇论文：解析正文、中英对照（术语表 + 核心段落逐段 + 其余中文讲解），以老师上课的对话式带学（先发问、按回答讲解、前置知识可跳过）拆解前置知识与核心内容，并把前置→核心的映射与全部知识沉淀进一个可复用的全局 wiki（graph.json + 概念页 + 论文页）。当用户丢入论文 PDF 或说“读这篇论文/带读/精读/讲读”时使用。";
+  "带读一篇论文：前置知识先检索并读取 wiki，缺失时搜索阅读可靠教材、读本或论文，再具体讲解与讨论；提问后结束本轮，用户控制节奏。跳过讲解仍收录 wiki，知识覆盖和教学进度分开。普通带读不创建 goal。当用户丢入论文 PDF 或说“读这篇论文/带读/精读/讲读”时使用。";
 
 const CANDIDATE = {
   name: PROVIDER_NAME,
@@ -219,32 +212,7 @@ async function upsertConcept(ctx, args, exec) {
 }
 
 // ===========================================================================
-// 4. command：/readpaper（收 PDF，followup 触发 agent 加载 skill）
-// ===========================================================================
-function executeReadpaper(ctx, invocation) {
-  if (invocation.attachments.length === 0) {
-    return {
-      kind: "error",
-      text: "请附上论文 PDF 文件后再执行 /readpaper。",
-    };
-  }
-  invocation.agent.followup(
-    createUserMessage({
-      content: [
-        ...invocation.attachments,
-        {
-          type: "text",
-          text: "请加载 paper-reader skill，对以上论文附件执行完整的对话式带学流程（先发问、按回答讲解、前置知识可跳过），并最终把知识落盘到 paper-wiki/。",
-        },
-      ],
-      source: { kind: "user" },
-    }),
-  );
-  return { kind: "success", text: "论文已收到，正在开始带学……" };
-}
-
-// ===========================================================================
-// 5. apply
+// 4. apply（/readpaper 输入处理见 readpaper.js）
 // ===========================================================================
 function apply(ctx) {
   ctx.skills.registerProvider(() => skillProvider);
@@ -252,7 +220,7 @@ function apply(ctx) {
   ctx.commands.register({
     name: "readpaper",
     description: "带读一篇论文：解析、中英对照、对话式带学并沉淀成 wiki",
-    input: { hint: "[可选说明]", attachments: true },
+    input: { hint: '[@"论文.pdf"] [--mode=explain|discuss|practice] [可选说明]', attachments: true },
     handler: (invocation) => executeReadpaper(ctx, invocation),
   });
 
